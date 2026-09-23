@@ -1,0 +1,19 @@
+# Datos pesados - no se suben al repo
+data/*.csv
+data/*.rds
+*.csv
+*.rds
+
+# Archivos temporales de R
+.Rhistory
+.RData
+.Rproj.user/
+
+# Archivos temporales de Python
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
