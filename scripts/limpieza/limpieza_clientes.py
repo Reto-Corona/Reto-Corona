@@ -11,7 +11,7 @@ from pathlib import Path
 
 
 
-DATA_DIR = Path(__file__).resolve().parent.parent / "data"
+DATA_DIR = Path(__file__).resolve().parent.parent.parent / "data"
 RUTA_ENTRADA = DATA_DIR / "maestro_clientes.csv"
 RUTA_SALIDA = DATA_DIR / "clientes_limpio.parquet"
 

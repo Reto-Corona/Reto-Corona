@@ -1,8 +1,10 @@
 #Pesados
 data/*.csv
 data/*.rds
+data/*.parquet
 *.csv
 *.rds
+*.parquet
 
 #R
 .Rhistory
@@ -17,3 +19,6 @@ __pycache__/
 #sistema
 .DS_Store
 Thumbs.db
+
+#resultados generados (se regeneran con los scripts)
+salidas/
