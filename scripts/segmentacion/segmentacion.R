@@ -1,7 +1,3 @@
-# =============================================================================
-# segmentacion.R - Reto Analytics Corona
-# Segmenta a los consumidores finales con K-means y K-medoids y compara ambos.
-#
 #   1. Prepara las variables de comportamiento de compra
 #   2. Prueba varios números de grupos (k) y mide la calidad de cada uno
 #   3. Ajusta el modelo final y mide su estabilidad
@@ -13,7 +9,7 @@
 # Uso (desde cualquier carpeta):
 #     install.packages(c("nanoparquet", "cluster", "ggplot2"))
 #     Rscript scripts/segmentacion/segmentacion.R
-# =============================================================================
+
 
 suppressPackageStartupMessages({
   library(nanoparquet)  # leer y escribir .parquet
@@ -21,7 +17,7 @@ suppressPackageStartupMessages({
   library(ggplot2)
 })
 
-# --- Rutas (a partir de la ubicación de este archivo) ------------------------
+# Rutas de acceso
 argumentos <- commandArgs(trailingOnly = FALSE)
 archivo <- sub("^--file=", "", argumentos[grep("^--file=", argumentos)])
 RAIZ <- if (length(archivo)) normalizePath(file.path(dirname(archivo), "..", "..")) else getwd()
@@ -30,7 +26,7 @@ OUT <- file.path(RAIZ, "salidas")
 GRAFICAS <- file.path(OUT, "graficas")
 dir.create(GRAFICAS, recursive = TRUE, showWarnings = FALSE)
 
-# --- Parámetros (todas las decisiones del modelo están aquí) -----------------
+# Parámetros
 SEMILLA <- 2026            # fija el azar: el resultado es igual en cada corrida
 K_CANDIDATOS <- 2:8        # números de grupos que se prueban
 K_MINIMO <- 3              # con 2 grupos no se pueden diferenciar acciones comerciales
@@ -41,10 +37,7 @@ MUESTRAS_CLARA <- 20       # K-medoids (clara) busca medoides en 20 submuestras.
 TAMANO_CLARA <- 1000       # ...de 1.000 clientes cada una
 REPETICIONES_ESTABILIDAD <- 10
 
-# Variables que entran al modelo: solo comportamiento de compra.
-# - monto no entra porque es ticket x visitas (repetiría la misma información).
-# - recencia no entra: Corona pidió que no condicione el análisis.
-# - edad, género, región y canal no entran: se usan después para describir.
+# Variables utiles para comportamiento de compra
 NOMBRES_VARIABLES <- c(
   log_ticket = "Valor de la visita",
   log_visitas = "Número de visitas",
@@ -56,28 +49,26 @@ NOMBRES_VARIABLES <- c(
   share_pinturas_e_impermeabilizantes = "Gasto en Pinturas"
 )
 
-# =============================================================================
-# Funciones
-# =============================================================================
+#juegue
 
 cargar_consumidores <- function() {
-  # Solo consumidores finales con compras: las empresas se segmentan aparte,
+  # Solo consumidores finales con compras, las empresas se segmentan aparte,
   # porque muy pocas concentran gran parte de las ventas.
   ruta <- file.path(DATA, "features_clientes_v2.parquet")
   if (!file.exists(ruta)) {
     stop("No se encontró ", ruta, ". Corre primero los tres scripts de Python.")
   }
   clientes <- as.data.frame(read_parquet(ruta))
-  # Orden fijo: el parquet no siempre llega en el mismo orden, y sin esto las
-  # muestras al azar (y por tanto las métricas) cambiarían entre corridas.
+  
+  #Criterio para ordenar
   clientes <- clientes[order(clientes$cliente), ]
   clientes[which(clientes$tipo_cliente == "Consumidor final" & clientes$monto > 0), ]
 }
 
 preparar_variables <- function(clientes) {
-  # Logaritmo en las variables muy concentradas (pocos clientes con valores
-  # enormes) y luego estandarización: todas quedan con media 0 y desviación 1,
-  # para que ninguna pese más solo por su unidad de medida.
+  # Logaritmo en las variables muy concentradas 
+  # estandarización
+  
   x <- data.frame(
     log_ticket = log1p(clientes$ticket_visita),
     log_visitas = log(clientes$frecuencia_visitas),

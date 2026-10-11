@@ -17,10 +17,7 @@ RUTA_SALIDA = DATA_DIR / "transaccional_corregido.parquet"
 
 CSV_KWARGS = {"sep": ";", "encoding": "utf-8-sig", "decimal": "."}
 
-# Interruptor de la corrección de valor. Está ENCENDIDO (11 oct 2026); falta
-# confirmarlo con Corona, que pidió no modificar los valores.
-# En True, se recalcula el valor de las líneas detectadas (ver corregir_valor).
-# En False, valor_corregido es igual a valor y ninguna línea queda marcada.
+
 CORREGIR_VALOR = True
 
 # En la base, valor = precio * cantidad / 2.65 (factor de escala de Corona)
@@ -35,7 +32,6 @@ def cargar() -> pd.DataFrame:
 
 def limpiar(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Cambios aplicados (sin borrar ninguna fila):
     1. Corrige el typo 'Subategoria' a 'Subcategoria'
     2. Estandariza nombres de columna
     3. Convierte '(No Value)' en region a NaN

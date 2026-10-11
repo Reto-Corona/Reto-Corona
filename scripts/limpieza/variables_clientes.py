@@ -1,7 +1,5 @@
 """
-variables_clientes.py - Reto Analytics Corona
-Prepara la base para la segmentación:
-  1. Construye las variables por cliente          -> data/features_clientes_v2.parquet
+  1. Construye las variables por cliente          
   2. Imprime 4 descriptivos para el informe (y los guarda en salidas/*.csv)
 
 Requiere haber corrido antes:
@@ -31,9 +29,7 @@ for archivo in ("transaccional_corregido.parquet", "clientes_limpio.parquet"):
 con = duckdb.connect()
 con.execute(f"CREATE TABLE trx AS SELECT * FROM '{DATA / 'transaccional_corregido.parquet'}'")
 
-# ---------------------------------------------------------------------------
-# 1. Variables por cliente (frecuencia en visitas = cliente + fecha + punto de venta)
-# ---------------------------------------------------------------------------
+# Variables cliente
 negocios = [n for (n,) in con.execute(
     "SELECT DISTINCT negocio FROM trx WHERE negocio IS NOT NULL ORDER BY 1").fetchall()]
 def col(n):

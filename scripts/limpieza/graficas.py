@@ -1,11 +1,4 @@
 """
-graficas.py - Reto Analytics Corona
-Genera las gráficas del análisis descriptivo -> salidas/graficas/*.png
-
-Cubre los análisis que pide el documento guía (evolución de las compras en el
-tiempo, patrones generacionales, diferencias por región y género, frecuencia,
-grupos de mayor y menor consumo, afinidad, canales) y otras de interés
-(tipo de cliente, calidad de la edad, recompra por cohorte).
 
 Requiere haber corrido antes:
     limpieza_transaccional.py  limpieza_clientes.py  variables_clientes.py
@@ -13,6 +6,8 @@ Requiere haber corrido antes:
 Uso (desde cualquier carpeta):
     pip install duckdb pandas matplotlib
     python scripts/limpieza/graficas.py
+
+(Uso de claude para estandarización y generar gráficas visuales Claude ---Sonnet 5.5)
 """
 from pathlib import Path
 
