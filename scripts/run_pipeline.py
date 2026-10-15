@@ -1,8 +1,8 @@
 """
-Corre el pipeline completo del reto para las 4 versiones de la segmentación:
+Corre el pipeline completo del reto para las 6 versiones de la segmentación:
 
-    original/sin_pca   original/con_pca
-    corregido/sin_pca  corregido/con_pca
+    original/sin_pca   original/con_pca   original/con_pca_90
+    corregido/sin_pca  corregido/con_pca  corregido/con_pca_90
 
 y después consolida los resultados en salidas/comparacion_versiones.csv.
 
@@ -38,7 +38,7 @@ RAIZ = Path(__file__).resolve().parent.parent
 SCRIPTS = RAIZ / "scripts"
 
 VERSIONES = ("original", "corregido")
-PCAS = ("sin_pca", "con_pca")
+PCAS = ("sin_pca", "con_pca", "con_pca_90")
 
 
 def encontrar_rscript() -> str:

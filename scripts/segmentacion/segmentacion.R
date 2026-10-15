@@ -7,14 +7,23 @@
 # Requiere haber corrido antes (Python):
 #     limpieza_transaccional.py  limpieza_clientes.py  variables_clientes.py
 #
-# El script produce una de las cuatro variantes del cuadro:
-#     CORONA_VERSION ∈ {original, corregido}  (valor por defecto: corregido)
-#     CORONA_PCA     ∈ {sin_pca, con_pca}     (valor por defecto: sin_pca)
+# El script produce una de las seis variantes del cuadro:
+#     CORONA_VERSION ∈ {original, corregido}             (valor por defecto: corregido)
+#     CORONA_PCA     ∈ {sin_pca, con_pca, con_pca_90}    (valor por defecto: sin_pca)
+#
+# - sin_pca:     agrupa sobre las 8 variables estandarizadas.
+# - con_pca:     PCA con corte de 80% de varianza (4 componentes); k lo elige el silhouette.
+# - con_pca_90:  PCA con corte de 90% de varianza (5 componentes), k = 6 fijo. La
+#   componente 5 (~11% de varianza, descartada en con_pca) carga sobre log_visitas vs
+#   log_categorias y log_ticket, es decir, separa a los clientes que vuelven muchas
+#   veces de los que compran mucho en una sola visita. k = 6 coincide con el codo de
+#   la inercia.
 #
 # Uso (desde cualquier carpeta):
 #     install.packages(c("nanoparquet", "cluster", "ggplot2"))
-#     CORONA_VERSION=corregido CORONA_PCA=sin_pca Rscript scripts/segmentacion/segmentacion.R
-#     CORONA_VERSION=corregido CORONA_PCA=con_pca Rscript scripts/segmentacion/segmentacion.R
+#     CORONA_VERSION=corregido CORONA_PCA=sin_pca     Rscript scripts/segmentacion/segmentacion.R
+#     CORONA_VERSION=corregido CORONA_PCA=con_pca     Rscript scripts/segmentacion/segmentacion.R
+#     CORONA_VERSION=corregido CORONA_PCA=con_pca_90  Rscript scripts/segmentacion/segmentacion.R
 #     ... (idem con CORONA_VERSION=original)
 
 
@@ -31,7 +40,7 @@ RAIZ <- if (length(archivo)) normalizePath(file.path(dirname(archivo), "..", "..
 DATA <- file.path(RAIZ, "data")
 OUT_BASE <- file.path(RAIZ, "salidas")
 
-# Variantes: version (original/corregido) y uso de PCA (sin_pca/con_pca)
+# Variantes: version (original/corregido) y uso de PCA (sin_pca/con_pca/con_pca_90)
 leer_version <- function() {
   v <- tolower(Sys.getenv("CORONA_VERSION", "corregido"))
   if (!v %in% c("original", "corregido"))
@@ -40,14 +49,14 @@ leer_version <- function() {
 }
 leer_pca <- function() {
   p <- tolower(Sys.getenv("CORONA_PCA", "sin_pca"))
-  if (!p %in% c("sin_pca", "con_pca"))
-    stop("CORONA_PCA debe ser 'sin_pca' o 'con_pca' (recibí '", p, "').")
+  if (!p %in% c("sin_pca", "con_pca", "con_pca_90"))
+    stop("CORONA_PCA debe ser 'sin_pca', 'con_pca' o 'con_pca_90' (recibí '", p, "').")
   p
 }
 
 VERSION <- leer_version()
 PCA_FLAG <- leer_pca()
-USAR_PCA <- PCA_FLAG == "con_pca"
+USAR_PCA <- PCA_FLAG %in% c("con_pca", "con_pca_90")
 
 OUT <- file.path(OUT_BASE, VERSION, PCA_FLAG)
 GRAFICAS <- file.path(OUT, "graficas")
@@ -60,14 +69,20 @@ RUTA_SEGMENTOS <- file.path(DATA, paste0("segmentos_", VERSION, "_", PCA_FLAG, "
 SEMILLA <- 2026            # fija el azar: el resultado es igual en cada corrida
 K_CANDIDATOS <- 2:8        # números de grupos que se prueban
 K_MINIMO <- 3              # con 2 grupos no se pueden diferenciar acciones comerciales
-K_FINAL <- NULL            # NULL = lo elige el silhouette; o fijar un número a mano
+# k final: NULL = lo elige el silhouette. Se fija en con_pca_90 porque la componente
+# que se añade al pasar de 80% a 90% de varianza (log_visitas vs log_categorias y
+# log_ticket) separa clientes recurrentes de los de una sola visita, y k = 6 coincide
+# con el codo de la inercia.
+K_FINAL <- if (PCA_FLAG == "con_pca_90") 6 else NULL
 TAMANO_MUESTRA <- 5000     # clientes con los que se calcula el silhouette
 INICIOS_KMEANS <- 10       # K-means se repite desde 10 puntos de partida distintos
 ITERACIONES_KMEANS <- 300  # suficiente para evitar las advertencias "did not converge"
 MUESTRAS_CLARA <- 20       # K-medoids (clara) busca medoides en 20 submuestras...
 TAMANO_CLARA <- 1000       # ...de 1.000 clientes cada una
 REPETICIONES_ESTABILIDAD <- 10
-VARIANZA_OBJETIVO_PCA <- 0.80  # umbral de varianza acumulada para quedarse con pcs
+# Umbral de varianza acumulada para quedarse con los pcs: 0.80 para con_pca (típico),
+# 0.90 para con_pca_90 (para no perder la componente que distingue recurrentes).
+VARIANZA_OBJETIVO_PCA <- if (PCA_FLAG == "con_pca_90") 0.90 else 0.80
 
 # Variables utiles para comportamiento de compra
 NOMBRES_VARIABLES <- c(
@@ -353,6 +368,15 @@ main <- function() {
   estabilidad <- medir_estabilidad(x_cluster, k, clientes$segmento_kmeans, muestra)
   acuerdo <- indice_rand_ajustado(clientes$segmento_kmeans, clientes$segmento_kmedoids)
 
+  # Silhouette del modelo final medido también sobre las 8 variables originales
+  # estandarizadas, con la misma muestra. Esto permite comparar las variantes con
+  # y sin PCA en la misma escala, porque el espacio de PCs no es el de x_std.
+  distancias_std <- dist(x_std[muestra, ])
+  silhouette_kmeans_std <- silhouette_promedio(
+    clientes$segmento_kmeans[muestra], distancias_std)
+  silhouette_kmedoids_std <- silhouette_promedio(
+    clientes$segmento_kmedoids[muestra], distancias_std)
+
   perfil <- perfilar_segmentos(clientes, clientes$segmento_kmeans)
   perfil_kmedoids <- perfilar_segmentos(clientes, clientes$segmento_kmedoids)
   # Centros en las 8 variables originales estandarizadas (sirven para interpretar
@@ -373,12 +397,18 @@ main <- function() {
   write.csv(medoides, file.path(OUT, "segmentacion_medoides.csv"), row.names = FALSE)
 
   # Resumen de una fila para la comparación de versiones (lo lee comparacion.py).
+  # silhouette_kmeans/kmedoids se miden en el espacio donde se agrupó (x_std en
+  # sin_pca, los PCs en las variantes de PCA). silhouette_kmeans_std/kmedoids_std
+  # se miden sobre las 8 variables originales estandarizadas, para comparar
+  # directamente las tres variantes.
   resumen <- data.frame(
     version = VERSION,
     pca = PCA_FLAG,
     k = k,
     silhouette_kmeans = metricas$silhouette_kmeans[metricas$k == k],
     silhouette_kmedoids = metricas$silhouette_kmedoids[metricas$k == k],
+    silhouette_kmeans_std = silhouette_kmeans_std,
+    silhouette_kmedoids_std = silhouette_kmedoids_std,
     estabilidad_media = mean(estabilidad),
     estabilidad_min = min(estabilidad),
     acuerdo_kmeans_kmedoids = acuerdo,
@@ -407,9 +437,11 @@ main <- function() {
   cat("\n== Métricas por número de segmentos ==\n")
   print(format(metricas, digits = 4), row.names = FALSE)
   cat(sprintf("\nNúmero de segmentos elegido: %d\n", k))
-  cat(sprintf("Silhouette final: K-means %.3f | K-medoids %.3f\n",
+  cat(sprintf("Silhouette final (espacio de agrupación): K-means %.3f | K-medoids %.3f\n",
               metricas$silhouette_kmeans[metricas$k == k],
               metricas$silhouette_kmedoids[metricas$k == k]))
+  cat(sprintf("Silhouette final sobre las 8 variables estandarizadas (comparable entre variantes): K-means %.3f | K-medoids %.3f\n",
+              silhouette_kmeans_std, silhouette_kmedoids_std))
   cat(sprintf("Estabilidad de K-means (Rand ajustado, %d repeticiones): media %.3f, mínimo %.3f\n",
               REPETICIONES_ESTABILIDAD, mean(estabilidad), min(estabilidad)))
   cat(sprintf("Acuerdo entre K-means y K-medoids (Rand ajustado): %.3f\n", acuerdo))

@@ -1,28 +1,31 @@
 """
-Consolidación de las 4 versiones de la segmentación en
+Consolidación de las 6 versiones de la segmentación en
 salidas/comparacion_versiones.csv.
 
-Requiere haber corrido antes la segmentación de las 4 variantes:
-    original/sin_pca, original/con_pca, corregido/sin_pca, corregido/con_pca.
+Requiere haber corrido antes la segmentación de las 6 variantes:
+    original/sin_pca, original/con_pca, original/con_pca_90,
+    corregido/sin_pca, corregido/con_pca, corregido/con_pca_90.
 
 Para cada variante toma:
-    - k, silhouette K-means y K-medoids, estabilidad y acuerdo K-means vs
-      K-medoids desde salidas/<version>/<pca>/resumen_version.csv.
+    - k, silhouette K-means y K-medoids en el espacio de agrupación,
+      silhouette K-means y K-medoids medido sobre las 8 variables
+      estandarizadas (comparable entre variantes), estabilidad y acuerdo
+      K-means vs K-medoids desde salidas/<version>/<pca>/resumen_version.csv.
     - % de clientes y % de ventas de cada segmento calculándolo con el parquet
       de segmentos y el parquet de features de esa versión.
 
-Después añade filas de acuerdo (Rand ajustado) entre versiones:
-    - con PCA vs sin PCA  (dentro de cada versión del valor)
-    - original vs corregido (dentro de cada variante de PCA)
+Después añade filas de acuerdo (Rand ajustado) entre variantes:
+    - con PCA vs sin PCA          (dentro de cada versión del valor)
+    - con PCA 90 vs sin PCA        (dentro de cada versión del valor)
+    - con PCA 90 vs con PCA        (dentro de cada versión del valor)
+    - original vs corregido        (dentro de cada variante de PCA)
 
 Uso:
     pip install pandas pyarrow
     python scripts/segmentacion/comparacion.py
 """
-from itertools import combinations
 from pathlib import Path
 
-import numpy as np
 import pandas as pd
 
 
@@ -31,7 +34,7 @@ DATA = RAIZ / "data"
 OUT = RAIZ / "salidas"
 
 VERSIONES = ("original", "corregido")
-PCAS = ("sin_pca", "con_pca")
+PCAS = ("sin_pca", "con_pca", "con_pca_90")
 
 
 def ruta_segmentos(version: str, pca: str) -> Path:
@@ -46,7 +49,7 @@ def ruta_resumen(version: str, pca: str) -> Path:
     return OUT / version / pca / "resumen_version.csv"
 
 
-def indice_rand_ajustado(a: np.ndarray, b: np.ndarray) -> float:
+def indice_rand_ajustado(a, b) -> float:
     """
     Rand ajustado: 1 si las agrupaciones son idénticas, 0 si coincidirían por
     azar. Misma fórmula que la implementación en R, pensada para dos
@@ -109,6 +112,8 @@ def fila_version(datos: dict) -> dict:
         ),
         "silhouette_kmeans": round(r["silhouette_kmeans"], 4),
         "silhouette_kmedoids": round(r["silhouette_kmedoids"], 4),
+        "silhouette_kmeans_std": round(r["silhouette_kmeans_std"], 4),
+        "silhouette_kmedoids_std": round(r["silhouette_kmedoids_std"], 4),
         "estabilidad_media": round(r["estabilidad_media"], 4),
         "estabilidad_min": round(r["estabilidad_min"], 4),
         "acuerdo_kmeans_kmedoids": round(r["acuerdo_kmeans_kmedoids"], 4),
@@ -144,7 +149,7 @@ def fila_comparacion(etiqueta: str, a: dict, b: dict) -> dict:
 
 
 def main() -> None:
-    print("Leyendo las 4 versiones...")
+    print("Leyendo las 6 versiones...")
     datos = {}
     for v in VERSIONES:
         for p in PCAS:
@@ -157,11 +162,17 @@ def main() -> None:
 
     filas = [fila_version(datos[(v, p)]) for v in VERSIONES for p in PCAS]
 
-    # con PCA vs sin PCA (misma versión del valor)
-    for v in VERSIONES:
-        filas.append(fila_comparacion(
-            f"con_pca_vs_sin_pca_{v}", datos[(v, "sin_pca")], datos[(v, "con_pca")]
-        ))
+    # Acuerdos entre variantes de PCA (dentro de la misma versión del valor)
+    contrastes_pca = [
+        ("con_pca_vs_sin_pca",    "sin_pca",    "con_pca"),
+        ("con_pca_90_vs_sin_pca", "sin_pca",    "con_pca_90"),
+        ("con_pca_90_vs_con_pca", "con_pca",    "con_pca_90"),
+    ]
+    for etiqueta, p1, p2 in contrastes_pca:
+        for v in VERSIONES:
+            filas.append(fila_comparacion(
+                f"{etiqueta}_{v}", datos[(v, p1)], datos[(v, p2)]
+            ))
     # original vs corregido (misma variante de PCA)
     for p in PCAS:
         filas.append(fila_comparacion(
