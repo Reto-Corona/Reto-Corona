@@ -2,10 +2,19 @@
  Limpieza de base_transaccional
 
 Carga base_transaccional.csv, limpia nombres y tipos, agrega valor_corregido
-y guarda el resultado en data/transaccional_corregido.parquet
+y guarda el resultado en data/transaccional_<version>.parquet.
+
+El interruptor de corrección se controla con la variable de entorno
+CORONA_VERSION:
+    - CORONA_VERSION=original  -> CORREGIR_VALOR = False
+    - CORONA_VERSION=corregido -> CORREGIR_VALOR = True   (valor por defecto)
+
+Así el script puede correrse en paralelo para las dos variantes sin pisarse,
+sin tener que editarlo a mano.
 
 """
 
+import os
 import pandas as pd
 import numpy as np
 from pathlib import Path
@@ -13,17 +22,30 @@ from pathlib import Path
 
 DATA_DIR = Path(__file__).resolve().parent.parent.parent / "data"
 RUTA_ENTRADA = DATA_DIR / "base_transaccional.csv"
-RUTA_SALIDA = DATA_DIR / "transaccional_corregido.parquet"
 
 CSV_KWARGS = {"sep": ";", "encoding": "utf-8-sig", "decimal": "."}
-
-
-CORREGIR_VALOR = True
 
 # En la base, valor = precio * cantidad / 2.65 (factor de escala de Corona)
 FACTOR_ESCALA = 2.65
 # Margen para decidir que el desajuste es una potencia de 10 exacta
 TOLERANCIA_ESCALA = 0.01
+
+
+def obtener_version() -> str:
+    """
+    Lee CORONA_VERSION del entorno. Debe ser 'original' o 'corregido'.
+    Si no está definida, se usa 'corregido' (comportamiento histórico).
+    """
+    version = os.environ.get("CORONA_VERSION", "corregido").strip().lower()
+    if version not in ("original", "corregido"):
+        raise ValueError(
+            f"CORONA_VERSION debe ser 'original' o 'corregido' (recibí '{version}')."
+        )
+    return version
+
+
+def ruta_salida(version: str) -> Path:
+    return DATA_DIR / f"transaccional_{version}.parquet"
 
 
 def cargar() -> pd.DataFrame:
@@ -72,16 +94,16 @@ def detectar_valor_reducido(df: pd.DataFrame) -> pd.Series:
     )
 
 
-def corregir_valor(df: pd.DataFrame) -> pd.DataFrame:
+def corregir_valor(df: pd.DataFrame, corregir_valor_flag: bool) -> pd.DataFrame:
     """
-    Con CORREGIR_VALOR = True, las líneas detectadas se recalculan como
+    Con corregir_valor_flag = True, las líneas detectadas se recalculan como
     precio * cantidad / 2.65. Con False no se corrige ninguna.
 
     Nunca se modifica 'valor': el resultado queda en 'valor_corregido' y las
     líneas tocadas se marcan con valor_corregido_flag = 1.
     'fecha' es fecha_pedido sin hora.
     """
-    corregir = detectar_valor_reducido(df) & CORREGIR_VALOR
+    corregir = detectar_valor_reducido(df) & corregir_valor_flag
 
     df["valor_corregido_flag"] = corregir.astype("int32")
     df["valor_corregido"] = df["valor"].where(
@@ -92,7 +114,7 @@ def corregir_valor(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def reporte_calidad(df: pd.DataFrame) -> None:
+def reporte_calidad(df: pd.DataFrame, corregir_valor_flag: bool) -> None:
 
     print(f"Filas: {df.shape[0]:,} | Columnas: {df.shape[1]}")
     print(
@@ -107,7 +129,7 @@ def reporte_calidad(df: pd.DataFrame) -> None:
     print(f"Pedidos distintos (id_pedido): {df['id_pedido'].nunique():,}")
     detectadas = detectar_valor_reducido(df).sum()
     corregidas = df["valor_corregido_flag"].sum()
-    print(f"Corrección de valor: {'ENCENDIDA' if CORREGIR_VALOR else 'APAGADA'}")
+    print(f"Corrección de valor: {'ENCENDIDA' if corregir_valor_flag else 'APAGADA'}")
     print(f"Líneas detectadas con valor reducido: {detectadas:,} ({detectadas / len(df) * 100:.2f}%)")
     print(f"Líneas con valor corregido: {corregidas:,} ({corregidas / len(df) * 100:.2f}%)")
     print(
@@ -118,12 +140,17 @@ def reporte_calidad(df: pd.DataFrame) -> None:
 
 
 def main() -> pd.DataFrame:
+    version = obtener_version()
+    corregir_flag = version == "corregido"
+    salida = ruta_salida(version)
+    print(f"== Versión: {version} (CORREGIR_VALOR = {corregir_flag}) ==")
+
     df = cargar()
     df = limpiar(df)
-    df = corregir_valor(df)
-    reporte_calidad(df)
-    print(f"\nGuardando en {RUTA_SALIDA} ...")
-    df.to_parquet(RUTA_SALIDA, index=False)
+    df = corregir_valor(df, corregir_flag)
+    reporte_calidad(df, corregir_flag)
+    print(f"\nGuardando en {salida} ...")
+    df.to_parquet(salida, index=False)
     print("Listo.")
 
     return df

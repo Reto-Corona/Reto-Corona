@@ -3,12 +3,18 @@
 Requiere haber corrido antes:
     limpieza_transaccional.py  limpieza_clientes.py  variables_clientes.py
 
+La versión (original o corregido) se controla con la variable de entorno
+CORONA_VERSION. Las gráficas se escriben en:
+    salidas/<version>/descriptivos/graficas/*.png
+
 Uso (desde cualquier carpeta):
     pip install duckdb pandas matplotlib
-    python scripts/limpieza/graficas.py
+    CORONA_VERSION=original  python scripts/limpieza/graficas.py
+    CORONA_VERSION=corregido python scripts/limpieza/graficas.py
 
 (Uso de claude para estandarización y generar gráficas visuales Claude ---Sonnet 5.5)
 """
+import os
 from pathlib import Path
 
 import duckdb
@@ -25,7 +31,21 @@ from matplotlib.ticker import FuncFormatter
 
 RAIZ = Path(__file__).resolve().parent.parent.parent
 DATA = RAIZ / "data"
-OUT = RAIZ / "salidas" / "graficas"
+
+
+def obtener_version() -> str:
+    version = os.environ.get("CORONA_VERSION", "corregido").strip().lower()
+    if version not in ("original", "corregido"):
+        raise ValueError(
+            f"CORONA_VERSION debe ser 'original' o 'corregido' (recibí '{version}')."
+        )
+    return version
+
+
+VERSION = obtener_version()
+OUT = RAIZ / "salidas" / VERSION / "descriptivos" / "graficas"
+TRX_PARQUET = DATA / f"transaccional_{VERSION}.parquet"
+FEATURES_PARQUET = DATA / f"features_clientes_{VERSION}.parquet"
 
 # ---------------------------------------------------------------------------
 # Estilo: una sola paleta para todas las gráficas
@@ -557,17 +577,18 @@ def recompra_por_cohorte(con) -> None:
 
 
 def main() -> None:
-    for archivo in ("transaccional_corregido.parquet", "features_clientes_v2.parquet"):
-        if not (DATA / archivo).exists():
+    print(f"== Versión: {VERSION} ==")
+    for archivo in (TRX_PARQUET, FEATURES_PARQUET):
+        if not archivo.exists():
             raise FileNotFoundError(
-                f"No se encontró {DATA / archivo}. Corre primero limpieza_transaccional.py, "
+                f"No se encontró {archivo}. Corre primero limpieza_transaccional.py, "
                 "limpieza_clientes.py y variables_clientes.py"
             )
     OUT.mkdir(parents=True, exist_ok=True)
     configurar_estilo()
     con = duckdb.connect()
-    con.execute(f"CREATE VIEW trx AS SELECT * FROM '{DATA / 'transaccional_corregido.parquet'}'")
-    con.execute(f"CREATE VIEW cli AS SELECT * FROM '{DATA / 'features_clientes_v2.parquet'}'")
+    con.execute(f"CREATE VIEW trx AS SELECT * FROM '{TRX_PARQUET}'")
+    con.execute(f"CREATE VIEW cli AS SELECT * FROM '{FEATURES_PARQUET}'")
     global FUENTE
     if con.execute("SELECT SUM(valor_corregido_flag) FROM trx").fetchone()[0] > 0:
         FUENTE = FUENTE_CORREGIDA

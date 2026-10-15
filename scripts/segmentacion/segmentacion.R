@@ -1,14 +1,21 @@
 #   1. Prepara las variables de comportamiento de compra
 #   2. Prueba varios números de grupos (k) y mide la calidad de cada uno
 #   3. Ajusta el modelo final y mide su estabilidad
-#   4. Describe cada segmento -> data/segmentos_clientes.parquet y salidas/
+#   4. Describe cada segmento -> data/segmentos_<version>_<pca>.parquet
+#                              -> salidas/<version>/<pca>/*
 #
 # Requiere haber corrido antes (Python):
 #     limpieza_transaccional.py  limpieza_clientes.py  variables_clientes.py
 #
+# El script produce una de las cuatro variantes del cuadro:
+#     CORONA_VERSION ∈ {original, corregido}  (valor por defecto: corregido)
+#     CORONA_PCA     ∈ {sin_pca, con_pca}     (valor por defecto: sin_pca)
+#
 # Uso (desde cualquier carpeta):
 #     install.packages(c("nanoparquet", "cluster", "ggplot2"))
-#     Rscript scripts/segmentacion/segmentacion.R
+#     CORONA_VERSION=corregido CORONA_PCA=sin_pca Rscript scripts/segmentacion/segmentacion.R
+#     CORONA_VERSION=corregido CORONA_PCA=con_pca Rscript scripts/segmentacion/segmentacion.R
+#     ... (idem con CORONA_VERSION=original)
 
 
 suppressPackageStartupMessages({
@@ -22,9 +29,32 @@ argumentos <- commandArgs(trailingOnly = FALSE)
 archivo <- sub("^--file=", "", argumentos[grep("^--file=", argumentos)])
 RAIZ <- if (length(archivo)) normalizePath(file.path(dirname(archivo), "..", "..")) else getwd()
 DATA <- file.path(RAIZ, "data")
-OUT <- file.path(RAIZ, "salidas")
+OUT_BASE <- file.path(RAIZ, "salidas")
+
+# Variantes: version (original/corregido) y uso de PCA (sin_pca/con_pca)
+leer_version <- function() {
+  v <- tolower(Sys.getenv("CORONA_VERSION", "corregido"))
+  if (!v %in% c("original", "corregido"))
+    stop("CORONA_VERSION debe ser 'original' o 'corregido' (recibí '", v, "').")
+  v
+}
+leer_pca <- function() {
+  p <- tolower(Sys.getenv("CORONA_PCA", "sin_pca"))
+  if (!p %in% c("sin_pca", "con_pca"))
+    stop("CORONA_PCA debe ser 'sin_pca' o 'con_pca' (recibí '", p, "').")
+  p
+}
+
+VERSION <- leer_version()
+PCA_FLAG <- leer_pca()
+USAR_PCA <- PCA_FLAG == "con_pca"
+
+OUT <- file.path(OUT_BASE, VERSION, PCA_FLAG)
 GRAFICAS <- file.path(OUT, "graficas")
 dir.create(GRAFICAS, recursive = TRUE, showWarnings = FALSE)
+
+RUTA_FEATURES <- file.path(DATA, paste0("features_clientes_", VERSION, ".parquet"))
+RUTA_SEGMENTOS <- file.path(DATA, paste0("segmentos_", VERSION, "_", PCA_FLAG, ".parquet"))
 
 # Parámetros
 SEMILLA <- 2026            # fija el azar: el resultado es igual en cada corrida
@@ -33,9 +63,11 @@ K_MINIMO <- 3              # con 2 grupos no se pueden diferenciar acciones come
 K_FINAL <- NULL            # NULL = lo elige el silhouette; o fijar un número a mano
 TAMANO_MUESTRA <- 5000     # clientes con los que se calcula el silhouette
 INICIOS_KMEANS <- 10       # K-means se repite desde 10 puntos de partida distintos
+ITERACIONES_KMEANS <- 300  # suficiente para evitar las advertencias "did not converge"
 MUESTRAS_CLARA <- 20       # K-medoids (clara) busca medoides en 20 submuestras...
 TAMANO_CLARA <- 1000       # ...de 1.000 clientes cada una
 REPETICIONES_ESTABILIDAD <- 10
+VARIANZA_OBJETIVO_PCA <- 0.80  # umbral de varianza acumulada para quedarse con pcs
 
 # Variables utiles para comportamiento de compra
 NOMBRES_VARIABLES <- c(
@@ -54,21 +86,20 @@ NOMBRES_VARIABLES <- c(
 cargar_consumidores <- function() {
   # Solo consumidores finales con compras, las empresas se segmentan aparte,
   # porque muy pocas concentran gran parte de las ventas.
-  ruta <- file.path(DATA, "features_clientes_v2.parquet")
-  if (!file.exists(ruta)) {
-    stop("No se encontró ", ruta, ". Corre primero los tres scripts de Python.")
+  if (!file.exists(RUTA_FEATURES)) {
+    stop("No se encontró ", RUTA_FEATURES, ". Corre primero los tres scripts de Python.")
   }
-  clientes <- as.data.frame(read_parquet(ruta))
-  
+  clientes <- as.data.frame(read_parquet(RUTA_FEATURES))
+
   #Criterio para ordenar
   clientes <- clientes[order(clientes$cliente), ]
   clientes[which(clientes$tipo_cliente == "Consumidor final" & clientes$monto > 0), ]
 }
 
 preparar_variables <- function(clientes) {
-  # Logaritmo en las variables muy concentradas 
+  # Logaritmo en las variables muy concentradas
   # estandarización
-  
+
   x <- data.frame(
     log_ticket = log1p(clientes$ticket_visita),
     log_visitas = log(clientes$frecuencia_visitas),
@@ -79,8 +110,26 @@ preparar_variables <- function(clientes) {
   scale(as.matrix(x[, names(NOMBRES_VARIABLES)]))
 }
 
+aplicar_pca <- function(x_std) {
+  # Mantiene el número de componentes necesario para explicar >= VARIANZA_OBJETIVO_PCA.
+  # x_std ya viene estandarizado (media 0, sd 1), por eso center = FALSE y scale. = FALSE.
+  modelo <- prcomp(x_std, center = FALSE, scale. = FALSE)
+  var_individual <- modelo$sdev^2 / sum(modelo$sdev^2)
+  var_acumulada <- cumsum(var_individual)
+  n_componentes <- which(var_acumulada >= VARIANZA_OBJETIVO_PCA)[1]
+  list(
+    modelo = modelo,
+    n_componentes = n_componentes,
+    var_individual = var_individual,
+    var_acumulada = var_acumulada,
+    scores = modelo$x[, seq_len(n_componentes), drop = FALSE],
+    cargas = modelo$rotation[, seq_len(n_componentes), drop = FALSE]
+  )
+}
+
 ajustar_kmeans <- function(x, k) {
-  kmeans(x, centers = k, nstart = INICIOS_KMEANS, iter.max = 100, algorithm = "MacQueen")
+  kmeans(x, centers = k, nstart = INICIOS_KMEANS, iter.max = ITERACIONES_KMEANS,
+         algorithm = "MacQueen")
 }
 
 ajustar_kmedoids <- function(x, k) {
@@ -232,7 +281,9 @@ graficar_eleccion_de_k <- function(metricas, k_final) {
 
 graficar_perfil <- function(centros, perfil) {
   # Cada celda: cuánto se aleja el segmento del consumidor promedio en esa
-  # variable, en desviaciones estándar (0 = igual al promedio).
+  # variable, en desviaciones estándar (0 = igual al promedio). Siempre se
+  # calcula sobre las 8 variables originales estandarizadas, no sobre las
+  # componentes principales, para que el gráfico se pueda interpretar.
   largo <- data.frame(
     segmento = rep(seq_len(nrow(centros)), times = ncol(centros)),
     variable = rep(NOMBRES_VARIABLES[colnames(centros)], each = nrow(centros)),
@@ -267,32 +318,47 @@ graficar_perfil <- function(centros, perfil) {
 # =============================================================================
 
 main <- function() {
+  cat(sprintf("== Versión: %s | PCA: %s ==\n", VERSION, PCA_FLAG))
   set.seed(SEMILLA)
   clientes <- cargar_consumidores()
-  x <- preparar_variables(clientes)
+  x_std <- preparar_variables(clientes)  # 8 variables estandarizadas (interpretables)
   cat(sprintf("Consumidores finales: %s | Variables: %d\n",
-              format(nrow(x), big.mark = ".", decimal.mark = ","), ncol(x)))
+              format(nrow(x_std), big.mark = ".", decimal.mark = ","), ncol(x_std)))
 
-  muestra <- sample(nrow(x), TAMANO_MUESTRA)
-  distancias <- dist(x[muestra, ])
+  # Espacio sobre el que se agrupa: puede ser x_std o los scores del PCA.
+  n_componentes_pca <- NA_integer_
+  if (USAR_PCA) {
+    pca <- aplicar_pca(x_std)
+    n_componentes_pca <- pca$n_componentes
+    cat(sprintf("PCA: %d componentes explican %.1f%% de la varianza.\n",
+                pca$n_componentes, 100 * pca$var_acumulada[pca$n_componentes]))
+    x_cluster <- pca$scores
+  } else {
+    x_cluster <- x_std
+  }
+
+  muestra <- sample(nrow(x_cluster), TAMANO_MUESTRA)
+  distancias <- dist(x_cluster[muestra, ])
 
   cat("Probando números de segmentos...\n")
-  metricas <- evaluar_candidatos(x, muestra, distancias)
+  metricas <- evaluar_candidatos(x_cluster, muestra, distancias)
   validos <- metricas[metricas$k >= K_MINIMO, ]
   k <- if (is.null(K_FINAL)) validos$k[which.max(validos$silhouette_kmeans)] else K_FINAL
 
   cat(sprintf("Ajustando el modelo final con k = %d...\n", k))
-  km <- ajustar_kmeans(x, k)
-  kmed <- ajustar_kmedoids(x, k)
+  km <- ajustar_kmeans(x_cluster, k)
+  kmed <- ajustar_kmedoids(x_cluster, k)
   clientes$segmento_kmeans <- ordenar_por_valor(km$cluster, clientes$monto)
   clientes$segmento_kmedoids <- ordenar_por_valor(kmed$clustering, clientes$monto)
-  estabilidad <- medir_estabilidad(x, k, clientes$segmento_kmeans, muestra)
+  estabilidad <- medir_estabilidad(x_cluster, k, clientes$segmento_kmeans, muestra)
   acuerdo <- indice_rand_ajustado(clientes$segmento_kmeans, clientes$segmento_kmedoids)
 
   perfil <- perfilar_segmentos(clientes, clientes$segmento_kmeans)
   perfil_kmedoids <- perfilar_segmentos(clientes, clientes$segmento_kmedoids)
-  # centros en el mismo orden que los segmentos renumerados
-  centros <- apply(x, 2, function(columna) tapply(columna, clientes$segmento_kmeans, mean))
+  # Centros en las 8 variables originales estandarizadas (sirven para interpretar
+  # cada segmento). Si hubo PCA, estos centros NO son los del k-means (que están
+  # en el espacio de componentes), sino el promedio por segmento en x_std.
+  centros <- apply(x_std, 2, function(columna) tapply(columna, clientes$segmento_kmeans, mean))
   # Los medoides son clientes reales: el "cliente típico" de cada segmento
   medoides <- clientes[kmed$i.med, c("cliente", "segmento_kmedoids", "monto", "ticket_visita",
                                      "frecuencia_visitas", "n_categorias", "negocio_principal",
@@ -300,11 +366,40 @@ main <- function() {
   medoides <- medoides[order(medoides$segmento_kmedoids), ]
 
   write_parquet(clientes[, c("cliente", "segmento_kmeans", "segmento_kmedoids")],
-                file.path(DATA, "segmentos_clientes.parquet"))
+                RUTA_SEGMENTOS)
   write.csv(metricas, file.path(OUT, "segmentacion_metricas.csv"), row.names = FALSE)
   write.csv(perfil, file.path(OUT, "segmentacion_perfil_kmeans.csv"), row.names = FALSE)
   write.csv(perfil_kmedoids, file.path(OUT, "segmentacion_perfil_kmedoids.csv"), row.names = FALSE)
   write.csv(medoides, file.path(OUT, "segmentacion_medoides.csv"), row.names = FALSE)
+
+  # Resumen de una fila para la comparación de versiones (lo lee comparacion.py).
+  resumen <- data.frame(
+    version = VERSION,
+    pca = PCA_FLAG,
+    k = k,
+    silhouette_kmeans = metricas$silhouette_kmeans[metricas$k == k],
+    silhouette_kmedoids = metricas$silhouette_kmedoids[metricas$k == k],
+    estabilidad_media = mean(estabilidad),
+    estabilidad_min = min(estabilidad),
+    acuerdo_kmeans_kmedoids = acuerdo,
+    n_componentes_pca = n_componentes_pca,
+    n_clientes = nrow(clientes)
+  )
+  write.csv(resumen, file.path(OUT, "resumen_version.csv"), row.names = FALSE)
+
+  if (USAR_PCA) {
+    varianza <- data.frame(
+      componente = seq_along(pca$var_individual),
+      var_individual = round(pca$var_individual, 6),
+      var_acumulada = round(pca$var_acumulada, 6),
+      conservada = seq_along(pca$var_individual) <= pca$n_componentes
+    )
+    write.csv(varianza, file.path(OUT, "pca_varianza.csv"), row.names = FALSE)
+    cargas <- as.data.frame(pca$cargas)
+    cargas <- cbind(variable = rownames(cargas), cargas)
+    write.csv(cargas, file.path(OUT, "pca_cargas.csv"), row.names = FALSE)
+  }
+
   graficar_eleccion_de_k(metricas, k)
   graficar_perfil(centros, perfil)
 
@@ -322,8 +417,8 @@ main <- function() {
   print(t(perfil), quote = FALSE)
   cat("\n== Cliente típico de cada segmento (medoides) ==\n")
   print(medoides, row.names = FALSE)
-  cat("\nGuardado: data/segmentos_clientes.parquet, salidas/segmentacion_*.csv,",
-      "salidas/graficas/13_ y 14_\nListo.\n")
+  cat(sprintf("\nGuardado: %s, %s, graficas 13_ y 14_\nListo.\n",
+              RUTA_SEGMENTOS, OUT))
 }
 
 main()
