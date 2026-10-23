@@ -22,3 +22,7 @@ Thumbs.db
 
 #resultados generados (se regeneran con los scripts)
 salidas/
+
+#Power BI (el caché guarda los datos; no se sube)
+**/.pbi/cache.abf
+**/.pbi/localSettings.json

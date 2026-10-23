@@ -1,0 +1,71 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.14.0/schema.json",
+  "name": "665401b55883411ea053",
+  "position": {
+    "x": 348,
+    "y": 104,
+    "z": 7000,
+    "height": 140,
+    "width": 296,
+    "tabOrder": 7000
+  },
+  "visual": {
+    "visualType": "card",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "ventas"
+                    }
+                  },
+                  "Property": "Número de clientes"
+                }
+              },
+              "queryRef": "ventas.Número de clientes",
+              "nativeQueryRef": "Número de clientes"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "a69bb49914f6e3943fd6",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "ventas"
+              }
+            },
+            "Property": "Número de clientes"
+          }
+        },
+        "type": "Advanced"
+      }
+    ]
+  }
+}

@@ -1,0 +1,5 @@
+expression RutaDatos = "C:\Users\pedro\Documents\RETOCORONA\Reto-Corona\data\powerbi\" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	lineageTag: 67546a5c-14a7-43ea-9a77-c0511b7ffe67
+
+	annotation PBI_ResultType = Text
+

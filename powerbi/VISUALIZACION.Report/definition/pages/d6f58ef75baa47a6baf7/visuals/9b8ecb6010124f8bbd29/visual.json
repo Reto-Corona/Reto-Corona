@@ -1,0 +1,94 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.14.0/schema.json",
+  "name": "9b8ecb6010124f8bbd29",
+  "position": {
+    "x": 348,
+    "y": 260,
+    "z": 12000,
+    "height": 390,
+    "width": 766,
+    "tabOrder": 12000
+  },
+  "visual": {
+    "visualType": "clusteredBarChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "segmentos"
+                    }
+                  },
+                  "Property": "nombre_segmento"
+                }
+              },
+              "queryRef": "segmentos.nombre_segmento",
+              "nativeQueryRef": "nombre_segmento",
+              "active": true,
+              "displayName": "Segmento"
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "ventas"
+                    }
+                  },
+                  "Property": "% de los clientes"
+                }
+              },
+              "queryRef": "ventas.% de los clientes",
+              "nativeQueryRef": "% de los clientes"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "ventas"
+                    }
+                  },
+                  "Property": "% de las ventas"
+                }
+              },
+              "queryRef": "ventas.% de las ventas",
+              "nativeQueryRef": "% de las ventas"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Peso de cada segmento: % de clientes y % de ventas'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

@@ -1,0 +1,201 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.0.0/schema.json",
+  "name": "48efafcc178549dfa2a6",
+  "position": {
+    "x": 348,
+    "y": 666,
+    "z": 14000,
+    "width": 1548,
+    "height": 398,
+    "tabOrder": 14000
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "segmentos"
+                    }
+                  },
+                  "Property": "nombre_segmento"
+                }
+              },
+              "queryRef": "segmentos.nombre_segmento",
+              "nativeQueryRef": "nombre_segmento",
+              "displayName": "Segmento"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "ventas"
+                    }
+                  },
+                  "Property": "Número de clientes"
+                }
+              },
+              "queryRef": "ventas.Número de clientes",
+              "nativeQueryRef": "Número de clientes"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "ventas"
+                    }
+                  },
+                  "Property": "% de los clientes"
+                }
+              },
+              "queryRef": "ventas.% de los clientes",
+              "nativeQueryRef": "% de los clientes"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "ventas"
+                    }
+                  },
+                  "Property": "Ventas totales"
+                }
+              },
+              "queryRef": "ventas.Ventas totales",
+              "nativeQueryRef": "Ventas totales"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "ventas"
+                    }
+                  },
+                  "Property": "% de las ventas"
+                }
+              },
+              "queryRef": "ventas.% de las ventas",
+              "nativeQueryRef": "% de las ventas"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "ventas"
+                    }
+                  },
+                  "Property": "Gasto mediano por cliente"
+                }
+              },
+              "queryRef": "ventas.Gasto mediano por cliente",
+              "nativeQueryRef": "Gasto mediano por cliente"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "ventas"
+                    }
+                  },
+                  "Property": "Visitas por cliente"
+                }
+              },
+              "queryRef": "ventas.Visitas por cliente",
+              "nativeQueryRef": "Visitas por cliente"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "ventas"
+                    }
+                  },
+                  "Property": "% una sola visita"
+                }
+              },
+              "queryRef": "ventas.% una sola visita",
+              "nativeQueryRef": "% una sola visita"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "ventas"
+                    }
+                  },
+                  "Property": "Productos por visita"
+                }
+              },
+              "queryRef": "ventas.Productos por visita",
+              "nativeQueryRef": "Productos por visita"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "ventas"
+                    }
+                  },
+                  "Property": "% contactables"
+                }
+              },
+              "queryRef": "ventas.% contactables",
+              "nativeQueryRef": "% contactables"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "ventas"
+                    }
+                  },
+                  "Property": "Edad mediana"
+                }
+              },
+              "queryRef": "ventas.Edad mediana",
+              "nativeQueryRef": "Edad mediana"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Resumen por segmento'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

@@ -1,0 +1,487 @@
+table clientes
+	lineageTag: 21d79263-34f6-4a54-abcb-f0fc4fb78250
+
+	column cliente
+		dataType: string
+		isKey
+		lineageTag: 9b6cb9b5-50d8-420e-a569-b62de0f8f3d5
+		summarizeBy: none
+		sourceColumn: cliente
+
+		annotation SummarizationSetBy = Automatic
+
+	column n_pedidos
+		dataType: int64
+		formatString: #,0
+		lineageTag: c352029d-d84a-4f6c-b625-d4bf49e491f4
+		summarizeBy: sum
+		sourceColumn: n_pedidos
+
+		annotation SummarizationSetBy = Automatic
+
+	column n_lineas
+		dataType: int64
+		formatString: #,0
+		lineageTag: 44203f16-6a38-493b-9f47-0e9fefcfcd2d
+		summarizeBy: sum
+		sourceColumn: n_lineas
+
+		annotation SummarizationSetBy = Automatic
+
+	column monto
+		dataType: double
+		formatString: #,0.00
+		lineageTag: eae7731a-c7ad-4329-9623-b2f5c1a95f75
+		summarizeBy: sum
+		sourceColumn: monto
+
+		annotation SummarizationSetBy = Automatic
+
+	column n_negocios
+		dataType: int64
+		formatString: 0
+		lineageTag: 55ac6f15-600a-4299-9457-c3c85849add9
+		summarizeBy: sum
+		sourceColumn: n_negocios
+
+		annotation SummarizationSetBy = Automatic
+
+	column n_categorias
+		dataType: int64
+		formatString: 0
+		lineageTag: 5bd9775c-a83d-45f2-905a-6b31025deb21
+		summarizeBy: sum
+		sourceColumn: n_categorias
+
+		annotation SummarizationSetBy = Automatic
+
+	column n_pdv
+		dataType: int64
+		formatString: 0
+		lineageTag: d110e413-4833-4c93-92d2-f33a069a966f
+		summarizeBy: sum
+		sourceColumn: n_pdv
+
+		annotation SummarizationSetBy = Automatic
+
+	column tuvo_valor_corregido
+		dataType: int64
+		formatString: 0
+		lineageTag: 4ad53df0-6ff5-492e-974e-7a1fb626e395
+		summarizeBy: sum
+		sourceColumn: tuvo_valor_corregido
+
+		annotation SummarizationSetBy = Automatic
+
+	column share_banos
+		dataType: double
+		formatString: #,0.00
+		lineageTag: 983ff6d4-16d8-4212-929e-426169c03c19
+		summarizeBy: sum
+		sourceColumn: share_banos
+
+		annotation SummarizationSetBy = Automatic
+
+	column share_cocinas
+		dataType: double
+		formatString: #,0.00
+		lineageTag: f4331739-dc03-4942-ad8e-8e19d6228da6
+		summarizeBy: sum
+		sourceColumn: share_cocinas
+
+		annotation SummarizationSetBy = Automatic
+
+	column share_pinturas_e_impermeabilizantes
+		dataType: double
+		formatString: #,0.00
+		lineageTag: 2d65b80c-6229-4b77-b9a5-abbb96e048e1
+		summarizeBy: sum
+		sourceColumn: share_pinturas_e_impermeabilizantes
+
+		annotation SummarizationSetBy = Automatic
+
+	column share_revestimientos_e_instalacion
+		dataType: double
+		formatString: #,0.00
+		lineageTag: 0a5d9199-9e61-4cb4-b368-74a35f303e8e
+		summarizeBy: sum
+		sourceColumn: share_revestimientos_e_instalacion
+
+		annotation SummarizationSetBy = Automatic
+
+	column share_servicios
+		dataType: double
+		formatString: #,0.00
+		lineageTag: 0ab3e290-7a48-4b7b-9485-f08adecc85ed
+		summarizeBy: sum
+		sourceColumn: share_servicios
+
+		annotation SummarizationSetBy = Automatic
+
+	column frecuencia_visitas
+		dataType: int64
+		formatString: 0
+		lineageTag: 5afaa10b-a989-46bd-8ca8-1b367eca60d5
+		summarizeBy: sum
+		sourceColumn: frecuencia_visitas
+
+		annotation SummarizationSetBy = Automatic
+
+	column recencia_dias
+		dataType: int64
+		formatString: 0
+		lineageTag: 2bb896c5-f8f7-456d-ac76-a26f0d32ef82
+		summarizeBy: sum
+		sourceColumn: recencia_dias
+
+		annotation SummarizationSetBy = Automatic
+
+	column dias_activo
+		dataType: int64
+		formatString: 0
+		lineageTag: 1ca1c4b7-49fe-486c-9576-732044a2320d
+		summarizeBy: sum
+		sourceColumn: dias_activo
+
+		annotation SummarizationSetBy = Automatic
+
+	column dias_entre_visitas
+		dataType: double
+		formatString: #,0.00
+		lineageTag: 8a483ebc-31ce-40b2-880f-9de2a5d720d7
+		summarizeBy: sum
+		sourceColumn: dias_entre_visitas
+
+		annotation SummarizationSetBy = Automatic
+
+	column ticket_visita
+		dataType: double
+		formatString: #,0.00
+		lineageTag: 1dbd6fd7-7c79-4836-a8c1-dd0ca7dfa1be
+		summarizeBy: sum
+		sourceColumn: ticket_visita
+
+		annotation SummarizationSetBy = Automatic
+
+	column lineas_por_visita
+		dataType: double
+		formatString: #,0.00
+		lineageTag: f3846165-0f76-43bd-8be0-de19a312793a
+		summarizeBy: sum
+		sourceColumn: lineas_por_visita
+
+		annotation SummarizationSetBy = Automatic
+
+	column meses_con_compra
+		dataType: int64
+		formatString: 0
+		lineageTag: 2ef6f7d7-3db6-4862-86d4-c8cf36ecf81f
+		summarizeBy: sum
+		sourceColumn: meses_con_compra
+
+		annotation SummarizationSetBy = Automatic
+
+	column concentracion_mes_pico
+		dataType: double
+		formatString: #,0.00
+		lineageTag: 48cb489d-531f-4f50-ae14-63780778e9a9
+		summarizeBy: sum
+		sourceColumn: concentracion_mes_pico
+
+		annotation SummarizationSetBy = Automatic
+
+	column negocio_principal
+		dataType: string
+		lineageTag: a580a276-595e-4828-8a6d-e34bd3c308cd
+		summarizeBy: none
+		sourceColumn: negocio_principal
+
+		annotation SummarizationSetBy = Automatic
+
+	column share_negocio_principal
+		dataType: double
+		formatString: #,0.00
+		lineageTag: d151e1eb-62d2-48b7-a5fc-ed381f12b7ba
+		summarizeBy: sum
+		sourceColumn: share_negocio_principal
+
+		annotation SummarizationSetBy = Automatic
+
+	column region_principal
+		dataType: string
+		lineageTag: 69880ba9-a78c-4f60-8ea9-2dd84a4a7998
+		summarizeBy: none
+		sourceColumn: region_principal
+
+		annotation SummarizationSetBy = Automatic
+
+	column cluster_principal
+		dataType: string
+		lineageTag: 35de34ca-6852-482e-99b5-724c8f16f739
+		summarizeBy: none
+		sourceColumn: cluster_principal
+
+		annotation SummarizationSetBy = Automatic
+
+	column tipo_cliente
+		dataType: string
+		lineageTag: 0f0b90e5-b399-4034-b35b-0b83c10d0f79
+		summarizeBy: none
+		sourceColumn: tipo_cliente
+
+		annotation SummarizationSetBy = Automatic
+
+	column edad
+		dataType: double
+		formatString: #,0.00
+		lineageTag: c7f0ec5f-e690-4d87-9cec-c4b869aa9b63
+		summarizeBy: sum
+		sourceColumn: edad
+
+		annotation SummarizationSetBy = Automatic
+
+	column genero
+		dataType: string
+		lineageTag: ba6faaf6-d0bc-4d9e-967a-0dc861d459c5
+		summarizeBy: none
+		sourceColumn: genero
+
+		annotation SummarizationSetBy = Automatic
+
+	column tratamiento_datos
+		dataType: string
+		lineageTag: ed26eed8-7a00-4aa5-82e3-f51ead783fe9
+		summarizeBy: none
+		sourceColumn: tratamiento_datos
+
+		annotation SummarizationSetBy = Automatic
+
+	column es_contactable
+		dataType: boolean
+		lineageTag: 2e296b81-d53b-4dbb-ba7c-fbedce0241bf
+		summarizeBy: none
+		sourceColumn: es_contactable
+
+		annotation SummarizationSetBy = Automatic
+
+	column primera_fecha
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: f1926c74-ef3f-48f9-b7a6-dfc60ba493a7
+		summarizeBy: none
+		sourceColumn: primera_fecha
+
+		variation Variation
+			isDefault
+			relationship: 70ff9a93-b2f5-4e43-822e-c5cbc2b73410
+			defaultHierarchy: LocalDateTable_cd9a02f2-bd1d-4afa-8df6-30e088d104ef.'Jerarquía de fechas'
+
+		annotation SummarizationSetBy = Automatic
+
+	column generacion
+		dataType: string
+		lineageTag: b9355fbe-fdf3-4f20-b03d-2f5c355e1121
+		summarizeBy: none
+		sourceColumn: generacion
+
+		annotation SummarizationSetBy = Automatic
+
+	column edad_dudosa
+		dataType: int64
+		formatString: 0
+		lineageTag: 410a999d-6dec-4f3f-b5b7-6faaeaee1802
+		summarizeBy: sum
+		sourceColumn: edad_dudosa
+
+		annotation SummarizationSetBy = Automatic
+
+	column posible_cliente_previo
+		dataType: int64
+		formatString: 0
+		lineageTag: ab3c35d8-f0b0-41d6-9633-7e5a09c62db2
+		summarizeBy: sum
+		sourceColumn: posible_cliente_previo
+
+		annotation SummarizationSetBy = Automatic
+
+	column en_maestro
+		dataType: int64
+		formatString: 0
+		lineageTag: b81136c0-ed57-42d6-b010-aa64abe9395a
+		summarizeBy: sum
+		sourceColumn: en_maestro
+
+		annotation SummarizationSetBy = Automatic
+
+	column segmento_empresa
+		dataType: string
+		lineageTag: adefe97f-854a-4674-9307-ddd50141234f
+		summarizeBy: none
+		sourceColumn: segmento_empresa
+
+		annotation SummarizationSetBy = Automatic
+
+	column monto_original
+		dataType: double
+		formatString: #,0.00
+		lineageTag: 8aa98404-b2e2-4bc2-884e-f53bc35468bb
+		summarizeBy: sum
+		sourceColumn: monto_original
+
+		annotation SummarizationSetBy = Automatic
+
+	column ticket_visita_original
+		dataType: double
+		formatString: #,0.00
+		lineageTag: dc04b8b1-5618-43f8-8f17-774ffcb4b5c7
+		summarizeBy: sum
+		sourceColumn: ticket_visita_original
+
+		annotation SummarizationSetBy = Automatic
+
+	column segmento
+		dataType: int64
+		formatString: 0
+		lineageTag: c80a8bea-acd2-4a40-b9a8-f2acfdb95e14
+		summarizeBy: none
+		sourceColumn: segmento
+
+		annotation SummarizationSetBy = Automatic
+
+	column seg_original_sin_pca_kmeans
+		dataType: int64
+		formatString: 0
+		lineageTag: d9b67d1f-36e6-423a-9bda-c88bc74dfd20
+		summarizeBy: sum
+		sourceColumn: seg_original_sin_pca_kmeans
+
+		annotation SummarizationSetBy = Automatic
+
+	column seg_original_sin_pca_kmedoids
+		dataType: int64
+		formatString: 0
+		lineageTag: 0f0727dc-d371-4edb-86e8-ca1a0fa81767
+		summarizeBy: sum
+		sourceColumn: seg_original_sin_pca_kmedoids
+
+		annotation SummarizationSetBy = Automatic
+
+	column seg_original_con_pca_kmeans
+		dataType: int64
+		formatString: 0
+		lineageTag: 7d2a7fb4-ad1b-4ffa-b2ec-7d3bb06481c4
+		summarizeBy: sum
+		sourceColumn: seg_original_con_pca_kmeans
+
+		annotation SummarizationSetBy = Automatic
+
+	column seg_original_con_pca_kmedoids
+		dataType: int64
+		formatString: 0
+		lineageTag: 427cfe60-4eec-4e79-bc3b-653c49e3787c
+		summarizeBy: sum
+		sourceColumn: seg_original_con_pca_kmedoids
+
+		annotation SummarizationSetBy = Automatic
+
+	column seg_original_con_pca_90_kmeans
+		dataType: int64
+		formatString: 0
+		lineageTag: 702533d1-b67c-4a58-95ca-d1981191b360
+		summarizeBy: sum
+		sourceColumn: seg_original_con_pca_90_kmeans
+
+		annotation SummarizationSetBy = Automatic
+
+	column seg_original_con_pca_90_kmedoids
+		dataType: int64
+		formatString: 0
+		lineageTag: c929bb40-ecc0-4aea-9e6a-b812751e3f94
+		summarizeBy: sum
+		sourceColumn: seg_original_con_pca_90_kmedoids
+
+		annotation SummarizationSetBy = Automatic
+
+	column seg_corregido_sin_pca_kmeans
+		dataType: int64
+		formatString: 0
+		lineageTag: 99f0d312-ef33-471d-bff9-f42b3ce60ef1
+		summarizeBy: sum
+		sourceColumn: seg_corregido_sin_pca_kmeans
+
+		annotation SummarizationSetBy = Automatic
+
+	column seg_corregido_sin_pca_kmedoids
+		dataType: int64
+		formatString: 0
+		lineageTag: 317a3174-fb84-4295-990d-d186267b9327
+		summarizeBy: sum
+		sourceColumn: seg_corregido_sin_pca_kmedoids
+
+		annotation SummarizationSetBy = Automatic
+
+	column seg_corregido_con_pca_kmeans
+		dataType: int64
+		formatString: 0
+		lineageTag: 63af04a3-f12e-485b-bc13-94c8a7442c00
+		summarizeBy: sum
+		sourceColumn: seg_corregido_con_pca_kmeans
+
+		annotation SummarizationSetBy = Automatic
+
+	column seg_corregido_con_pca_kmedoids
+		dataType: int64
+		formatString: 0
+		lineageTag: 46694082-abf7-4071-bfb1-f1f2214cd7ac
+		summarizeBy: sum
+		sourceColumn: seg_corregido_con_pca_kmedoids
+
+		annotation SummarizationSetBy = Automatic
+
+	column seg_corregido_con_pca_90_kmeans
+		dataType: int64
+		formatString: 0
+		lineageTag: 41e8ac6f-65f0-4abe-bc70-22b4edb26b8b
+		summarizeBy: sum
+		sourceColumn: seg_corregido_con_pca_90_kmeans
+
+		annotation SummarizationSetBy = Automatic
+
+	column seg_corregido_con_pca_90_kmedoids
+		dataType: int64
+		formatString: 0
+		lineageTag: d8e51197-09d4-4c28-8f0a-387bd5c26b11
+		summarizeBy: sum
+		sourceColumn: seg_corregido_con_pca_90_kmedoids
+
+		annotation SummarizationSetBy = Automatic
+
+	column rango_visitas
+		dataType: string
+		lineageTag: 34b2ab74-4a67-4be4-9a2d-edc33f9fa289
+		summarizeBy: none
+		sourceColumn: rango_visitas
+		sortByColumn: orden_rango_visitas
+
+		annotation SummarizationSetBy = Automatic
+
+	column orden_rango_visitas
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: a8ed446a-eb06-4147-bc11-0448e1e5505b
+		summarizeBy: none
+		sourceColumn: orden_rango_visitas
+
+		annotation SummarizationSetBy = Automatic
+
+	partition clientes = m
+		mode: import
+		source =
+				let
+				    Origen = Parquet.Document(File.Contents(RutaDatos & "clientes.parquet"))
+				in
+				    Origen
+
+	annotation PBI_ResultType = Table
+

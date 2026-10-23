@@ -1,0 +1,32 @@
+table segmentos
+	lineageTag: 46e5ebd2-a1cc-4bf6-8041-9effe82860e2
+
+	column segmento
+		dataType: int64
+		isKey
+		formatString: 0
+		lineageTag: bcb40c4c-3ecc-4302-8a2b-f7be955e1e70
+		summarizeBy: none
+		sourceColumn: segmento
+
+		annotation SummarizationSetBy = Automatic
+
+	column nombre_segmento
+		dataType: string
+		lineageTag: f80bb1ee-7eab-4491-a353-cc1296022575
+		summarizeBy: none
+		sourceColumn: nombre_segmento
+		sortByColumn: segmento
+
+		annotation SummarizationSetBy = Automatic
+
+	partition segmentos = m
+		mode: import
+		source =
+				let
+				    Origen = Parquet.Document(File.Contents(RutaDatos & "segmentos.parquet"))
+				in
+				    Origen
+
+	annotation PBI_ResultType = Table
+

@@ -1,0 +1,24 @@
+model Model
+	culture: es-CO
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	sourceQueryCulture: es-CO
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+annotation PBI_QueryOrder = ["RutaDatos", "ventas", "clientes", "segmentos", "regiones", "calendario"]
+
+annotation __PBI_TimeIntelligenceEnabled = 1
+
+annotation PBI_ProTooling = ["DevMode"]
+
+ref table ventas
+ref table clientes
+ref table segmentos
+ref table regiones
+ref table calendario
+ref table DateTableTemplate_11f2b044-3b1d-46fe-81de-6cf1ae00eed1
+ref table LocalDateTable_cd9a02f2-bd1d-4afa-8df6-30e088d104ef
+
+ref cultureInfo es-CO
+

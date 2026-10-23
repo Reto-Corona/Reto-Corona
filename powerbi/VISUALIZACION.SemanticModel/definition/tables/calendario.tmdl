@@ -1,0 +1,71 @@
+table calendario
+	lineageTag: 12a19015-ec4d-4958-a652-cfe8d1ee61f1
+	dataCategory: Time
+
+	column fecha
+		dataType: dateTime
+		isKey
+		formatString: Short Date
+		lineageTag: 8216de23-00c3-4dce-aa7a-ccc1f9faaaa4
+		summarizeBy: none
+		sourceColumn: fecha
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column anio
+		dataType: int64
+		formatString: 0
+		lineageTag: 43b22d6d-d6fb-45c5-a761-bd73c6bcb31c
+		summarizeBy: none
+		sourceColumn: anio
+
+		annotation SummarizationSetBy = Automatic
+
+	column mes
+		dataType: int64
+		formatString: 0
+		lineageTag: 3cd88299-9b84-449a-8d14-d2823b82f778
+		summarizeBy: none
+		sourceColumn: mes
+
+		annotation SummarizationSetBy = Automatic
+
+	column anio_mes
+		dataType: int64
+		formatString: 0
+		lineageTag: 60f64ef9-1163-401d-b87a-36f43d749e88
+		summarizeBy: none
+		sourceColumn: anio_mes
+
+		annotation SummarizationSetBy = Automatic
+
+	column trimestre
+		dataType: int64
+		formatString: 0
+		lineageTag: ecd12560-a3c3-42d2-baf1-8efe8daea152
+		summarizeBy: none
+		sourceColumn: trimestre
+
+		annotation SummarizationSetBy = Automatic
+
+	column mes_texto
+		dataType: string
+		lineageTag: 28db6533-2cc4-4d48-94c8-7454df4fe579
+		summarizeBy: none
+		sourceColumn: mes_texto
+		sortByColumn: anio_mes
+
+		annotation SummarizationSetBy = Automatic
+
+	partition calendario = m
+		mode: import
+		source =
+				let
+				    Origen = Parquet.Document(File.Contents(RutaDatos & "calendario.parquet"))
+				in
+				    Origen
+
+	annotation PBI_ResultType = Table
+

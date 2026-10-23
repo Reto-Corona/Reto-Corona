@@ -1,0 +1,267 @@
+table ventas
+	lineageTag: cffa49f9-7abb-4f45-8457-17b2995f1044
+
+	measure 'Ventas totales' = SUM ( ventas[valor_corregido] )
+		formatString: \$#,0
+		displayFolder: Ventas
+		lineageTag: e1653ab5-a16e-4df3-89a7-b291080bce4e
+
+	measure 'Ventas valor original' = SUM ( ventas[valor_original] )
+		formatString: \$#,0
+		displayFolder: Ventas
+		lineageTag: 177e0356-d0d8-4de9-a20b-679e8533b314
+
+	measure 'Efecto de la corrección %' = DIVIDE ( [Ventas totales], [Ventas valor original] ) - 1
+		formatString: 0.00%
+		displayFolder: Ventas
+		lineageTag: 216ed500-7542-42da-a05b-de1c1842262a
+
+	measure '% de las ventas' = DIVIDE ( [Ventas totales], CALCULATE ( [Ventas totales], ALLSELECTED () ) )
+		formatString: 0.0%
+		displayFolder: Ventas
+		lineageTag: 99f1b574-c020-46f1-8106-f7239146d6f0
+
+	measure Líneas = COUNTROWS ( ventas )
+		formatString: #,0
+		displayFolder: Ventas
+		lineageTag: e5297814-5b64-46a9-bea1-64cb86bac24e
+
+	measure '% líneas corregidas' = DIVIDE ( CALCULATE ( [Líneas], ventas[valor_corregido_flag] = 1 ), [Líneas] )
+		formatString: 0.0%
+		displayFolder: Ventas
+		lineageTag: e496484f-11c9-4f2b-877b-fd986822880a
+
+	measure Pedidos = DISTINCTCOUNT ( ventas[id_pedido] )
+		formatString: #,0
+		displayFolder: Ventas
+		lineageTag: 895a7b42-fb1b-4c94-9e60-196d28471cb4
+
+	measure 'Número de clientes' = DISTINCTCOUNT ( ventas[cliente] )
+		formatString: #,0
+		displayFolder: Clientes
+		lineageTag: 53c6ebed-3394-4b31-b79c-a7770616b2e3
+
+	measure '% de los clientes' = DIVIDE ( [Número de clientes], CALCULATE ( [Número de clientes], ALLSELECTED () ) )
+		formatString: 0.0%
+		displayFolder: Clientes
+		lineageTag: fd5d2cfc-5131-4792-9ab2-0edbe72afbfe
+
+	measure 'Gasto por cliente' = DIVIDE ( [Ventas totales], [Número de clientes] )
+		formatString: \$#,0
+		displayFolder: Clientes
+		lineageTag: 58799fa6-39d5-4f41-bcdd-e1ae6a168244
+
+	measure 'Gasto mediano por cliente' = MEDIANX ( VALUES ( ventas[cliente] ), [Ventas totales] )
+		formatString: \$#,0
+		displayFolder: Clientes
+		lineageTag: f566e7da-dff1-41dd-acc5-cb69e4626cb0
+
+	measure 'Clientes de una sola visita' = COUNTROWS ( FILTER ( VALUES ( ventas[cliente] ), [Visitas] = 1 ) )
+		formatString: #,0
+		displayFolder: Clientes
+		lineageTag: fb7d96e6-b66a-4d9b-a3f4-01aec7e79d52
+
+	measure '% una sola visita' = DIVIDE ( [Clientes de una sola visita], [Número de clientes] )
+		formatString: 0.0%
+		displayFolder: Clientes
+		lineageTag: 9a8e7c3e-776c-406c-b910-8fdf6c6676f2
+
+	measure '% que vuelve' = 1 - [% una sola visita]
+		formatString: 0.0%
+		displayFolder: Clientes
+		lineageTag: 6c9cba85-6b19-41cb-a8ba-4e4db468e632
+
+	measure '% contactables' = DIVIDE ( CALCULATE ( [Número de clientes], clientes[es_contactable] = TRUE () ), [Número de clientes] )
+		formatString: 0.0%
+		displayFolder: Clientes
+		lineageTag: 2f417407-eb1a-4d67-b349-5b0cdc9848be
+
+	measure 'Edad mediana' = CALCULATE ( MEDIAN ( clientes[edad] ), ventas )
+		formatString: 0
+		displayFolder: Clientes
+		lineageTag: 26c27115-2871-41d7-900d-1b43cf46d2e2
+
+	measure Visitas = DISTINCTCOUNT ( ventas[visita] )
+		formatString: #,0
+		displayFolder: Visitas
+		lineageTag: bebd226f-a04e-4e7a-96c6-d7e690321c1a
+
+	measure 'Visitas por cliente' = DIVIDE ( [Visitas], [Número de clientes] )
+		formatString: 0.00
+		displayFolder: Visitas
+		lineageTag: f1f3487e-3899-4fbe-9721-8f01cca23393
+
+	measure 'Ticket por visita' = DIVIDE ( [Ventas totales], [Visitas] )
+		formatString: \$#,0
+		displayFolder: Visitas
+		lineageTag: 931e1ab0-b157-44bd-b38c-68d7a32cca44
+
+	measure 'Productos por visita' = DIVIDE ( [Líneas], [Visitas] )
+		formatString: 0.00
+		displayFolder: Visitas
+		lineageTag: b8b5aee6-1d3f-414c-b0db-9b12e355600b
+
+	column fecha
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: cd7ef0e1-5ecc-44d4-b156-703853ed2d4b
+		summarizeBy: none
+		sourceColumn: fecha
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column id_pedido
+		dataType: string
+		lineageTag: d37aeea8-64a8-44b3-b855-aa47fe3673e4
+		summarizeBy: none
+		sourceColumn: id_pedido
+
+		annotation SummarizationSetBy = Automatic
+
+	column cliente
+		dataType: string
+		lineageTag: 247e27de-3a4e-4336-b885-bbf1771731f9
+		summarizeBy: none
+		sourceColumn: cliente
+
+		annotation SummarizationSetBy = Automatic
+
+	column asesor
+		dataType: string
+		lineageTag: 72a7b856-c7af-4722-a3d8-18d13302cb5c
+		summarizeBy: none
+		sourceColumn: asesor
+
+		annotation SummarizationSetBy = Automatic
+
+	column region
+		dataType: string
+		lineageTag: a39a54a5-b4d3-49d2-946b-2087b6ea36ba
+		summarizeBy: none
+		sourceColumn: region
+
+		annotation SummarizationSetBy = Automatic
+
+	column municipio
+		dataType: string
+		lineageTag: 83c1c3f9-a22a-412c-87c8-c17ea25735dd
+		summarizeBy: none
+		sourceColumn: municipio
+
+		annotation SummarizationSetBy = Automatic
+
+	column punto_de_venta
+		dataType: string
+		lineageTag: 725cf434-c2b8-4e3e-8df3-00197ddf839e
+		summarizeBy: none
+		sourceColumn: punto_de_venta
+
+		annotation SummarizationSetBy = Automatic
+
+	column cluster
+		dataType: string
+		lineageTag: 3e3b3a14-c874-429d-bb62-aa27c5afa762
+		summarizeBy: none
+		sourceColumn: cluster
+
+		annotation SummarizationSetBy = Automatic
+
+	column negocio
+		dataType: string
+		lineageTag: ec1067a7-cb76-4def-944e-9ffbfb6cd7a3
+		summarizeBy: none
+		sourceColumn: negocio
+
+		annotation SummarizationSetBy = Automatic
+
+	column categoria
+		dataType: string
+		lineageTag: 5cb859b9-2144-42f9-b103-2d7e2b5ec9fc
+		summarizeBy: none
+		sourceColumn: categoria
+
+		annotation SummarizationSetBy = Automatic
+
+	column subcategoria
+		dataType: string
+		lineageTag: 9f6af8a4-af3b-4828-8ec4-8b4213d66c15
+		summarizeBy: none
+		sourceColumn: subcategoria
+
+		annotation SummarizationSetBy = Automatic
+
+	column producto
+		dataType: string
+		lineageTag: 5bd29c36-5ca5-43f1-827e-15d3b1b92566
+		summarizeBy: none
+		sourceColumn: producto
+
+		annotation SummarizationSetBy = Automatic
+
+	column cantidad
+		dataType: double
+		formatString: #,0.00
+		lineageTag: 462840b9-9069-48fd-a7cf-d16ab9a0df45
+		summarizeBy: sum
+		sourceColumn: cantidad
+
+		annotation SummarizationSetBy = Automatic
+
+	column precio
+		dataType: double
+		formatString: #,0.00
+		lineageTag: 83ae7c7a-4801-4d89-881f-74cf37b08c7b
+		summarizeBy: none
+		sourceColumn: precio
+
+		annotation SummarizationSetBy = Automatic
+
+	column valor_original
+		dataType: double
+		formatString: #,0.00
+		lineageTag: 013d48b3-903e-4126-8007-838e22dc249c
+		summarizeBy: sum
+		sourceColumn: valor_original
+
+		annotation SummarizationSetBy = Automatic
+
+	column valor_corregido
+		dataType: double
+		formatString: #,0.00
+		lineageTag: 626c410d-7251-49cb-8797-1b2efbcd9a21
+		summarizeBy: sum
+		sourceColumn: valor_corregido
+
+		annotation SummarizationSetBy = Automatic
+
+	column valor_corregido_flag
+		dataType: int64
+		formatString: 0
+		lineageTag: 9734aaa0-716c-46a3-ac86-94c634a6283c
+		summarizeBy: none
+		sourceColumn: valor_corregido_flag
+
+		annotation SummarizationSetBy = Automatic
+
+	column visita
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 53742ef3-42fa-4688-ad4f-8f64627f19c6
+		summarizeBy: none
+		sourceColumn: visita
+
+		annotation SummarizationSetBy = Automatic
+
+	partition ventas = m
+		mode: import
+		source =
+				let
+				    Origen = Parquet.Document(File.Contents(RutaDatos & "ventas.parquet"))
+				in
+				    Origen
+
+	annotation PBI_ResultType = Table
+

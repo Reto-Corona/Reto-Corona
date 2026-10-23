@@ -1,0 +1,21 @@
+relationship b6aa0725-149c-4d72-bc24-3f6219be5f04
+	fromColumn: ventas.fecha
+	toColumn: calendario.fecha
+
+relationship cea84929-da63-463b-902b-ca6304330331
+	fromColumn: ventas.cliente
+	toColumn: clientes.cliente
+
+relationship d50cf3c4-fb43-4ffd-8d86-93efab02c9de
+	fromColumn: ventas.region
+	toColumn: regiones.region
+
+relationship 3ec17cdf-c743-4921-9d2e-7d19f8b46823
+	fromColumn: clientes.segmento
+	toColumn: segmentos.segmento
+
+relationship 70ff9a93-b2f5-4e43-822e-c5cbc2b73410
+	joinOnDateBehavior: datePartOnly
+	fromColumn: clientes.primera_fecha
+	toColumn: LocalDateTable_cd9a02f2-bd1d-4afa-8df6-30e088d104ef.Date
+
