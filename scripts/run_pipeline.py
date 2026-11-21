@@ -26,6 +26,10 @@ Variables opcionales:
     SOLO      lista separada por comas de pasos a ejecutar, útil para depurar.
               Valores: clientes, transaccional, variables, graficas,
               segmentacion, comparacion. Si no se define se corren todos.
+
+Flag opcional:
+    --modelos  al final corre también scripts/modelos/run_modelos.py (todos los modelos de
+               scripts/modelos/; requieren pip install -r requirements.txt).
 """
 import os
 import shutil
@@ -147,6 +151,14 @@ def main() -> None:
             [py, str(SCRIPTS / "segmentacion" / "comparacion.py")],
             env=entorno(),
             descripcion="Comparación entre versiones",
+        )
+
+    # Paso opcional: modelos nuevos (scripts/modelos/)
+    if "--modelos" in sys.argv[1:]:
+        correr(
+            [py, str(SCRIPTS / "modelos" / "run_modelos.py")],
+            env=entorno(),
+            descripcion="Modelos (scripts/modelos/run_modelos.py)",
         )
 
     print("\nPipeline completo.")
